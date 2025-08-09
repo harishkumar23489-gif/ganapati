@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Ganapathy Festival — Unity in Tradition</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- SPLASH -->
+  <div id="splash" class="splash">
+    <div class="splash-card">
+      <img src="images/ganesha-small.png" alt="Ganesha" onerror="this.style.display='none'"/>
+      <h1>Ganapathy Festival</h1>
+      <p class="subtitle">Unity in Tradition</p>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="images/ganesha-small.png" alt="Ganesha" onerror="this.style.display='none'"/>
+      <div>
+        <div class="title">Ganapathy Festival</div>
+        <div class="small muted">Unity in Tradition</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div id="userInfo" class="muted">Not signed in</div>
+      <button id="btnLogout" class="btn small ghost hidden">Logout</button>
+    </div>
+  </header>
+
+  <!-- TOP NAV -->
+  <nav id="topNav" class="nav"></nav>
+
+  <main class="container">
+    <!-- LOGIN & SIGNUP -->
+    <section id="page-login" class="page active">
+      <div class="card auth">
+        <h2>Sign in / Sign up</h2>
+        <div class="tabs">
+          <button id="tabSignIn" class="tab active">Sign In</button>
+          <button id="tabSignUp" class="tab">Sign Up</button>
+        </div>
+
+        <div id="signinForm" class="form">
+          <input id="inEmail" placeholder="email (e.g. super@fest.com)"/>
+          <input id="inPass" placeholder="password" type="password"/>
+          <div class="row gap">
+            <button id="btnSignIn" class="btn primary">Sign In</button>
+            <button id="btnDemoSuper" class="btn ghost">Fill Super</button>
+          </div>
+          <p id="inMsg" class="muted small"></p>
+        </div>
+
+        <div id="signupForm" class="form hidden">
+          <input id="suName" placeholder="Full name"/>
+          <input id="suEmail" placeholder="Email"/>
+          <input id="suPass" placeholder="Password" type="password"/>
+          <select id="suRole">
+            <option value="member">Member</option>
+            <option value="admin">Request Admin Access</option>
+          </select>
+          <div class="row gap">
+            <button id="btnSignUp" class="btn primary">Sign Up</button>
+            <button id="btnClear" class="btn ghost">Clear</button>
+          </div>
+          <p id="suMsg" class="muted small">Admin requests require Super Admin approval.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page hidden">
+      <div class="card hero">
+        <h2 id="welcomeMsg">Welcome</h2>
+        <p class="muted">Ganapathy Festival — Unity in Tradition</p>
+
+        <div class="row wrap">
+          <div class="stat card small">
+            <div class="stat-title">Collections Progress</div>
+            <canvas id="collectionProgress" width="120" height="120"></canvas>
+            <div id="collectionPercent" class="muted small">--% paid</div>
+          </div>
+
+          <div class="stat card small">
+            <div class="stat-title">Upcoming</div>
+            <div id="nextEvent" class="muted">No event</div>
+            <div id="countdown" class="muted small"></div>
+          </div>
+
+          <div class="stat card small">
+            <div class="stat-title">Quick Links</div>
+            <div class="quick-links">
+              <a href="#" data-link="page-songs" class="tile">Songs</a>
+              <a href="#" data-link="page-events" class="tile">Events</a>
+              <a href="#" data-link="page-gallery" class="tile">Gallery</a>
+              <a href="#" data-link="page-collections" class="tile">Collections</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Latest Notifications</h3>
+        <div id="notifList" class="list-cards"></div>
+      </div>
+    </section>
+
+    <!-- SONGS -->
+    <section id="page-songs" class="page hidden">
+      <div class="card">
+        <h2>Songs</h2>
+        <div class="tabs">
+          <button class="langTab tab active" data-lang="Kannada">Kannada</button>
+          <button class="langTab tab" data-lang="Sanskrit">Sanskrit</button>
+          <button class="langTab tab" data-lang="Hindi">Hindi</button>
+          <button class="langTab tab" data-lang="Telugu">Telugu</button>
+        </div>
+
+        <div id="songsList" class="list-cards"></div>
+
+        <h4>Upload MP3 (admin)</h4>
+        <input id="songFile" type="file" accept="audio/*"/>
+      </div>
+    </section>
+
+    <!-- EVENTS FEED -->
+    <section id="page-events" class="page hidden">
+      <div class="card">
+        <h2>Events Feed</h2>
+        <div id="eventsList" class="list-cards"></div>
+
+        <div id="eventForm" class="muted hidden">
+          <input id="evtTitle" placeholder="Title"/>
+          <input id="evtWhen" type="datetime-local"/>
+          <input id="evtThumb" placeholder="Image URL (optional)"/>
+          <textarea id="evtDesc" placeholder="Description"></textarea>
+          <button class="btn" onclick="addEvent()">Post Event</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section id="page-gallery" class="page hidden">
+      <div class="card">
+        <h2>Photo Gallery</h2>
+        <input id="galleryFile" type="file" accept="image/*" multiple/>
+        <div id="galleryGrid" class="gallery-grid"></div>
+      </div>
+    </section>
+
+    <!-- COLLECTIONS -->
+    <section id="page-collections" class="page hidden">
+      <div class="card">
+        <h2>Collections</h2>
+        <p class="muted">Super Admin sets fixed expected amount per member; Admins can mark Paid/Unpaid.</p>
+
+        <div id="collectionControls" class="muted hidden">
+          <input id="fixedAmount" type="number" placeholder="Default fixed amount (₹)"/>
+          <button class="btn" onclick="setDefaultAmount()">Set Default</button>
+        </div>
+
+        <h4>Members & Status</h4>
+        <div id="collectionList" class="list-cards"></div>
+      </div>
+    </section>
+
+    <!-- GROUP CHAT (mock) -->
+    <section id="page-chat" class="page hidden">
+      <div class="card">
+        <h2>Group Chat (demo)</h2>
+        <div id="chatWindow" class="chat-window"></div>
+        <div class="row gap">
+          <input id="chatMsg" placeholder="Write a message..."/>
+          <button class="btn" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN PANEL -->
+    <section id="page-admin" class="page hidden">
+      <div class="card">
+        <h2>Admin Panel</h2>
+        <div class="list-cards">
+          <div class="list-card"><div><strong>Approve users</strong></div><div><button class="btn" onclick="showPage('page-superadmin')">Go</button></div></div>
+          <div class="list-card"><div><strong>Post events</strong></div><div><button class="btn" onclick="showPage('page-events')">Open</button></div></div>
+          <div class="list-card"><div><strong>Manage Collections</strong></div><div><button class="btn" onclick="showPage('page-collections')">Open</button></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUPER ADMIN -->
+    <section id="page-superadmin" class="page hidden">
+      <div class="card">
+        <h2>Super Admin Console</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Pending Approvals</h3>
+            <div id="pendingList" class="list-cards"></div>
+          </div>
+
+          <div class="card">
+            <h3>Users</h3>
+            <div id="usersList" class="list-cards"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer muted center">Ganapathy Festival — Unity in Tradition © <span id="year"></span></footer>
+  </main>
+
+  <!-- bottom bar -->
+  <nav class="bottom-bar" id="bottomBar">
+    <a href="#" data-link="page-songs" class="bb-link">Songs</a>
+    <a href="#" data-link="page-events" class="bb-link">Events</a>
+    <a href="#" data-link="page-gallery" class="bb-link">Gallery</a>
+    <a href="#" data-link="page-collections" class="bb-link">Collections</a>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
