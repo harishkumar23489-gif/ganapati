@@ -1,161 +1,547 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Ganapathy — Mobile Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Ganapathy • Mobile Dashboard</title>
+<style>
+:root{
+  --bg:#fffdf8; --card:#ffffff; --accent:#ff8a3d; --accent2:#3178ff; --muted:#6b7280;
+  --ink:#1f2937; --radius:16px; --shadow:0 18px 60px rgba(20,30,60,.08);
+  font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff,#f6fbff)}
+#app{max-width:420px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+
+/* Splash */
+.splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;background:linear-gradient(180deg,#fff,#fbf2e8)}
+.splash-card{background:#fff;padding:20px 22px;border-radius:18px;box-shadow:var(--shadow);text-align:center;min-width:220px}
+.splash-card .logo{width:84px;height:84px;border-radius:12px;display:block;margin:0 auto 10px;background:#fff url('https://i.imgur.com/0bTCl2T.png') center/cover no-repeat}
+.splash-card h1{margin:6px 0 0;font-size:22px}
+.muted{color:var(--muted)} .small{font-size:12px} .tiny{font-size:11px}
+
+/* Topbar */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:transparent}
+.top-left{display:flex;gap:10px;align-items:center}
+.avatar-sm{width:52px;height:52px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.avatar-sm img{width:100%;height:100%;object-fit:cover}
+.title{font-weight:700}
+
+/* Auth modal */
+.auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,8,14,.28);z-index:8888}
+.auth-card{background:#fff;padding:18px;border-radius:16px;max-width:380px;width:92%;box-shadow:var(--shadow);animation:pop .2s ease}
+.auth-card h2{margin:0 0 8px}
+input,textarea,select{width:100%;padding:12px;margin:8px 0;border-radius:12px;border:1px solid #eee;font-size:14px}
+.row{display:flex;align-items:center} .between{justify-content:space-between} .gap{gap:8px}
+.btn{padding:10px 12px;border-radius:12px;border:0;background:#222;color:#fff;cursor:pointer}
+.btn.primary{background:var(--accent)} .btn.blue{background:var(--accent2)}
+.btn.ghost{background:transparent;color:#222;border:1px solid #eee}
+.btn.small{padding:7px 10px;font-size:13px}
+
+/* Main */
+.main{padding:12px;flex:1}
+.card{background:var(--card);padding:14px;border-radius:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.hero{background:linear-gradient(180deg,#ffffff,#fff7ef)}
+.big{font-size:18px;font-weight:700}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{padding:10px;border-radius:12px;background:linear-gradient(180deg,#fff,#fff8f0)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.grid img{width:100%;height:90px;object-fit:cover;border-radius:12px}
+
+/* Menu */
+.menu{position:fixed;right:12px;top:64px;background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.12);z-index:9000;overflow:hidden}
+.menu ul{list-style:none;padding:8px;margin:0;display:flex;flex-direction:column;gap:6px}
+.menu-item{display:block;padding:10px 12px;border-radius:10px;text-align:left;background:transparent;border:0;min-width:180px}
+
+/* Panels */
+.panels{position:fixed;left:0;right:0;top:64px;bottom:0;z-index:8500}
+.panel{background:#fff;margin:12px;border-radius:16px;padding:12px;height:calc(100% - 120px);overflow:auto;box-shadow:var(--shadow)}
+.panel-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.back{border:0;background:transparent;font-size:18px;cursor:pointer}
+
+.chat-window{height:60%;overflow:auto;padding:8px;border-radius:12px;background:linear-gradient(180deg,#fff,#fff8f0)}
+.hidden{display:none}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;z-index:99999}
+
+@keyframes pop{from{transform:scale(.98);opacity:.6}to{transform:scale(1);opacity:1}}
+</style>
 </head>
 <body>
-  <!-- MOBILE APP SHELL -->
-  <div id="app">
+<div id="app">
 
-    <!-- SPLASH -->
-    <div id="splash" class="splash">
-      <div class="splash-card"><img src="images/ganesha.png" alt="Ganesha" /><h1>Ganapathy</h1></div>
+  <!-- Splash -->
+  <div id="splash" class="splash">
+    <div class="splash-card">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>Ganapathy</h1>
+      <p class="muted small">Loading…</p>
     </div>
-
-    <!-- AUTH MODAL (mobile centered) -->
-    <div id="auth" class="auth modal-visible">
-      <div class="auth-card">
-        <h2>Sign in / Sign up</h2>
-        <input id="email" type="email" placeholder="Email" />
-        <input id="password" type="password" placeholder="Password" />
-        <div class="row gap">
-          <button id="btnSignIn" class="btn primary">Sign In</button>
-          <button id="btnSignUp" class="btn ghost">Sign Up</button>
-        </div>
-        <div class="row gap">
-          <button id="btnGoogle" class="btn ghost">Sign in with Google</button>
-        </div>
-        <p id="authMsg" class="muted small"></p>
-        <p class="muted tiny">Super admin: <strong>harishkumar23489@gmail.com</strong></p>
-      </div>
-    </div>
-
-    <!-- TOP BAR -->
-    <header class="topbar">
-      <div class="top-left">
-        <div id="avatarSmall" class="avatar-sm"></div>
-        <div class="title-col">
-          <div id="topName" class="title">Welcome</div>
-          <div id="topRole" class="muted small">Sign in to continue</div>
-        </div>
-      </div>
-      <div class="top-right">
-        <button id="btnMenu" class="icon-btn">⋮</button>
-      </div>
-    </header>
-
-    <!-- MAIN DASH (mobile view only) -->
-    <main id="main" class="main hidden">
-      <section class="card hero">
-        <div class="hero-left">
-          <h2 id="welcomeMsg">Welcome</h2>
-          <p class="muted">Ganapathy Festival — Unity in Tradition</p>
-
-          <div class="row between" style="margin-top:12px">
-            <div>
-              <div class="muted small">Collections Progress</div>
-              <canvas id="progress" width="110" height="110"></canvas>
-              <div id="progressPct" class="muted small">--%</div>
-            </div>
-            <div>
-              <div class="muted small">Festival Countdown</div>
-              <div id="countdown" class="big">--d --h --m</div>
-              <div id="nextEvent" class="muted small">Next event: —</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="feed" class="card">
-        <h3>Events Feed</h3>
-        <div id="eventsList" class="list"></div>
-      </section>
-
-      <section id="mini" class="card">
-        <div class="row between">
-          <div>
-            <h4>Quick</h4>
-            <p class="muted small">Open the menu (⋮) for Chat, Collections, Gallery, Songs</p>
-          </div>
-          <div><button id="btnRefresh" class="btn small">Refresh</button></div>
-        </div>
-      </section>
-    </main>
-
-    <!-- THREE DOTS MENU (drawer) -->
-    <nav id="menu" class="menu hidden">
-      <ul>
-        <li><button class="menu-item" data-panel="chat">Chat</button></li>
-        <li><button class="menu-item" data-panel="collections">Collections</button></li>
-        <li><button class="menu-item" data-panel="songs">Songs</button></li>
-        <li><button class="menu-item" data-panel="events">Events</button></li>
-        <li><button class="menu-item" data-panel="gallery">Gallery</button></li>
-        <li><button id="btnAdminPanel" class="menu-item hidden">Admin Panel</button></li>
-        <li><button id="btnLogout" class="menu-item hidden">Logout</button></li>
-      </ul>
-    </nav>
-
-    <!-- PANELS (chat, collections, songs, gallery, admin) -->
-    <div id="panelWrap" class="panels hidden">
-      <div id="panelChat" class="panel hidden">
-        <header class="panel-head"><button class="back">←</button><h3>Group Chat</h3></header>
-        <div id="chatWindow" class="chat-window"></div>
-        <div class="row gap">
-          <input id="chatInput" placeholder="Message..." />
-          <button id="chatSend" class="btn small">Send</button>
-        </div>
-      </div>
-
-      <div id="panelCollections" class="panel hidden">
-        <header class="panel-head"><button class="back">←</button><h3>Collections</h3></header>
-        <div id="collectionsList" class="list"></div>
-      </div>
-
-      <div id="panelSongs" class="panel hidden">
-        <header class="panel-head"><button class="back">←</button><h3>Songs</h3></header>
-        <div id="songsList" class="list"></div>
-        <div class="row gap" style="margin-top:10px">
-          <input id="songFile" type="file" accept="audio/*" />
-          <button id="btnUploadSong" class="btn small hidden">Upload</button>
-        </div>
-      </div>
-
-      <div id="panelEvents" class="panel hidden">
-        <header class="panel-head"><button class="back">←</button><h3>Events</h3></header>
-        <div id="eventsPanelList" class="list"></div>
-        <div id="eventForm" class="muted small hidden">
-          <input id="evTitle" placeholder="Title" />
-          <input id="evWhen" type="datetime-local" />
-          <textarea id="evDesc" placeholder="Description"></textarea>
-          <button id="btnPostEvent" class="btn small">Post Event</button>
-        </div>
-      </div>
-
-      <div id="panelGallery" class="panel hidden">
-        <header class="panel-head"><button class="back">←</button><h3>Gallery</h3></header>
-        <input id="galleryFile" type="file" accept="image/*" multiple />
-        <div id="galleryGrid" class="grid"></div>
-      </div>
-
-      <div id="panelAdmin" class="panel hidden">
-        <header class="panel-head"><button class="back">←</button><h3>Admin Panel</h3></header>
-        <div class="card">
-          <h4>Pending Approvals</h4>
-          <div id="pendingList" class="list"></div>
-        </div>
-        <div class="card">
-          <h4>Promote by Email</h4>
-          <input id="promoteEmail" placeholder="email" />
-          <button id="btnPromote" class="btn">Promote</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <script type="module" src="app.js"></script>
+  <!-- Auth -->
+  <div id="auth" class="auth hidden">
+    <div class="auth-card">
+      <h2>Welcome</h2>
+      <p class="muted small">Sign in or create an account</p>
+      <input id="name" placeholder="Full name (for new signup)" />
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <label class="small"><input id="reqAdmin" type="checkbox" /> Request admin access (needs super admin approval)</label>
+      <div class="row gap">
+        <button id="btnSignIn" class="btn primary">Sign In</button>
+        <button id="btnSignUp" class="btn ghost">Sign Up</button>
+      </div>
+      <div class="row gap" style="margin-top:8px">
+        <button id="btnGoogle" class="btn blue">Continue with Google</button>
+      </div>
+      <p id="authMsg" class="muted small"></p>
+      <p class="muted tiny">Super admin: <strong>harishkumar23489@gmail.com</strong></p>
+    </div>
+  </div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="top-left">
+      <div id="avatarSmall" class="avatar-sm"><img src="https://i.imgur.com/0bTCl2T.png" alt="avatar"></div>
+      <div class="title-col">
+        <div id="topName" class="title">Welcome</div>
+        <div id="topRole" class="muted small">Sign in to continue</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <button id="btnMenu" class="btn ghost" style="padding:6px 10px">⋮</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main id="main" class="main hidden">
+    <section class="card hero">
+      <h2 id="welcomeMsg">Welcome</h2>
+      <p class="muted small">Ganapathy Festival — Unity in Tradition</p>
+      <div class="row between" style="margin-top:12px">
+        <div>
+          <div class="muted small">Collections Progress</div>
+          <canvas id="progress" width="110" height="110"></canvas>
+          <div id="progressPct" class="muted small">--%</div>
+        </div>
+        <div>
+          <div class="muted small">Festival Countdown</div>
+          <div id="countdown" class="big">--d --h --m</div>
+          <div id="nextEvent" class="muted small">Next event: —</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="feed" class="card">
+      <h3>Events Feed</h3>
+      <div id="eventsList" class="list"></div>
+      <div class="muted small" style="margin-top:8px">Open menu (⋮) for more</div>
+    </section>
+  </main>
+
+  <!-- Menu -->
+  <nav id="menu" class="menu hidden">
+    <ul>
+      <li><button class="menu-item" data-panel="chat">Chat</button></li>
+      <li><button class="menu-item" data-panel="collections">Collections</button></li>
+      <li><button class="menu-item" data-panel="songs">Songs</button></li>
+      <li><button class="menu-item" data-panel="events">Events</button></li>
+      <li><button class="menu-item" data-panel="gallery">Gallery</button></li>
+      <li><button id="btnAdminPanel" class="menu-item hidden" data-panel="admin">Admin Panel</button></li>
+      <li><button id="btnLogout" class="menu-item hidden">Logout</button></li>
+    </ul>
+  </nav>
+
+  <!-- Panels -->
+  <div id="panelWrap" class="panels hidden">
+    <!-- Chat -->
+    <div id="panelChat" class="panel hidden">
+      <header class="panel-head"><button class="back">←</button><h3>Group Chat</h3></header>
+      <div id="chatWindow" class="chat-window"></div>
+      <div class="row gap">
+        <input id="chatInput" placeholder="Message..." />
+        <button id="chatSend" class="btn small">Send</button>
+      </div>
+    </div>
+
+    <!-- Collections -->
+    <div id="panelCollections" class="panel hidden">
+      <header class="panel-head"><button class="back">←</button><h3>Collections</h3></header>
+      <div id="collectionsList" class="list"></div>
+    </div>
+
+    <!-- Songs -->
+    <div id="panelSongs" class="panel hidden">
+      <header class="panel-head"><button class="back">←</button><h3>Songs</h3></header>
+      <div id="songsList" class="list"></div>
+    </div>
+
+    <!-- Events -->
+    <div id="panelEvents" class="panel hidden">
+      <header class="panel-head"><button class="back">←</button><h3>Events</h3></header>
+      <div id="eventsPanelList" class="list"></div>
+      <div id="eventForm" class="muted small hidden">
+        <input id="evTitle" placeholder="Title" />
+        <input id="evWhen" type="datetime-local" />
+        <textarea id="evDesc" placeholder="Description"></textarea>
+        <button id="btnPostEvent" class="btn small">Post Event</button>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div id="panelGallery" class="panel hidden">
+      <header class="panel-head"><button class="back">←</button><h3>Gallery</h3></header>
+      <input id="galleryFile" type="file" accept="image/*" multiple />
+      <div id="galleryGrid" class="grid"></div>
+    </div>
+
+    <!-- Admin -->
+    <div id="panelAdmin" class="panel hidden">
+      <header class="panel-head"><button class="back">←</button><h3>Admin Panel</h3></header>
+      <div class="card">
+        <h4>Pending Admin Requests</h4>
+        <div id="pendingList" class="list"></div>
+      </div>
+      <div class="card">
+        <h4>Promote by Email</h4>
+        <input id="promoteEmail" placeholder="email" />
+        <button id="btnPromote" class="btn">Promote</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase (modular) -->
+<script type="module">
+/* === Firebase imports === */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
+  query, orderBy, serverTimestamp, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
+
+/* === Config (yours) === */
+const firebaseConfig = {
+  apiKey: "AIzaSyACYX0sGSNPMFUWnJT8N5f5Tb82gMjqzcc",
+  authDomain: "kolur-85c1f.firebaseapp.com",
+  projectId: "kolur-85c1f",
+  storageBucket: "kolur-85c1f.firebasestorage.app",
+  messagingSenderId: "652302989474",
+  appId: "1:652302989474:web:1d5a54deb03fce77137ffb"
+};
+const SUPER_ADMIN_EMAIL = "harishkumar23489@gmail.com";
+const FESTIVAL_DATE = new Date("2025-08-27T00:00:00");
+
+/* === Init === */
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const googleProvider = new GoogleAuthProvider();
+
+/* === DOM === */
+const splash = document.getElementById('splash');
+const authModal = document.getElementById('auth');
+const nameIn = document.getElementById('name');
+const emailIn = document.getElementById('email');
+const passIn = document.getElementById('password');
+const reqAdmin = document.getElementById('reqAdmin');
+const btnSignIn = document.getElementById('btnSignIn');
+const btnSignUp = document.getElementById('btnSignUp');
+const btnGoogle = document.getElementById('btnGoogle');
+const authMsg = document.getElementById('authMsg');
+
+const avatarSmall = document.getElementById('avatarSmall');
+const topName = document.getElementById('topName');
+const topRole = document.getElementById('topRole');
+const welcomeMsg = document.getElementById('welcomeMsg');
+const main = document.getElementById('main');
+
+const progressCanvas = document.getElementById('progress');
+const progressPct = document.getElementById('progressPct');
+const countdownEl = document.getElementById('countdown');
+const nextEvent = document.getElementById('nextEvent');
+const eventsList = document.getElementById('eventsList');
+
+const btnMenu = document.getElementById('btnMenu');
+const menu = document.getElementById('menu');
+const panelWrap = document.getElementById('panelWrap');
+const panels = document.querySelectorAll('.panel');
+const btnAdminPanel = document.getElementById('btnAdminPanel');
+const btnLogout = document.getElementById('btnLogout');
+
+const chatWindow = document.getElementById('chatWindow');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+
+const collectionsList = document.getElementById('collectionsList');
+const songsList = document.getElementById('songsList');
+const eventsPanelList = document.getElementById('eventsPanelList');
+const eventForm = document.getElementById('eventForm');
+const evTitle = document.getElementById('evTitle');
+const evWhen = document.getElementById('evWhen');
+const evDesc = document.getElementById('evDesc');
+const btnPostEvent = document.getElementById('btnPostEvent');
+
+const galleryFile = document.getElementById('galleryFile');
+const galleryGrid = document.getElementById('galleryGrid');
+
+const promoteEmail = document.getElementById('promoteEmail');
+const btnPromote = document.getElementById('btnPromote');
+const pendingList = document.getElementById('pendingList');
+
+/* === helpers === */
+const hideSplash=()=>{ try{splash.style.display='none';}catch{} };
+const toast = (t)=>{ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),1600); };
+
+/* === Menu / panels === */
+btnMenu.onclick=()=>menu.classList.toggle('hidden');
+menu.querySelectorAll('.menu-item').forEach(b=>b.onclick=(e)=>{ openPanel(e.target.getAttribute('data-panel')); menu.classList.add('hidden'); });
+document.querySelectorAll('.back').forEach(b=>b.onclick=()=>{ panelWrap.classList.add('hidden'); panels.forEach(p=>p.classList.add('hidden')); });
+
+function openPanel(name){
+  panelWrap.classList.remove('hidden'); panels.forEach(p=>p.classList.add('hidden'));
+  const map = {
+    chat:'panelChat', collections:'panelCollections', songs:'panelSongs',
+    events:'panelEvents', gallery:'panelGallery', admin:'panelAdmin'
+  };
+  const id = map[name]; if(!id) return;
+  document.getElementById(id).classList.remove('hidden');
+  if(name==='chat') loadChat();
+  if(name==='collections') loadCollections();
+  if(name==='songs') loadSongs();
+  if(name==='events'){ loadEventsPanel(); }
+  if(name==='gallery') loadGallery();
+  if(name==='admin'){ loadPending(); }
+}
+
+/* === Auth buttons === */
+btnSignIn.onclick = async ()=>{
+  authMsg.textContent='';
+  try{ await signInWithEmailAndPassword(auth, emailIn.value.trim(), passIn.value); }
+  catch(err){ console.error(err); authMsg.textContent=err.message; }
+};
+btnSignUp.onclick = async ()=>{
+  authMsg.textContent='';
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, emailIn.value.trim(), passIn.value);
+    const role = (cred.user.email===SUPER_ADMIN_EMAIL) ? 'superadmin' : 'member';
+    await setDoc(doc(db,'users',cred.user.uid),{
+      email:cred.user.email, name:nameIn.value.trim()||cred.user.email.split('@')[0],
+      role, createdAt:serverTimestamp(), requestedRole:reqAdmin.checked?'admin':null
+    });
+    if(reqAdmin.checked) await addDoc(collection(db,'pending'),{ email:cred.user.email, requestedAt:serverTimestamp() });
+  }catch(err){ console.error(err); authMsg.textContent=err.message; }
+};
+btnGoogle.onclick = async ()=>{
+  authMsg.textContent='';
+  try{
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+    const uref = doc(db,'users',cred.user.uid);
+    const s = await getDoc(uref);
+    if(!s.exists()){
+      const role = (cred.user.email===SUPER_ADMIN_EMAIL) ? 'superadmin' : 'member';
+      await setDoc(uref,{ email:cred.user.email, name:cred.user.displayName||cred.user.email.split('@')[0], role, createdAt:serverTimestamp() });
+    }else if(cred.user.email===SUPER_ADMIN_EMAIL && s.data().role!=='superadmin'){
+      await updateDoc(uref,{ role:'superadmin' });
+    }
+  }catch(err){ console.error(err); authMsg.textContent=err.message; }
+};
+btnLogout.onclick=()=>signOut(auth).catch(console.error);
+
+/* === Auth state === */
+onAuthStateChanged(auth, async (user)=>{
+  try{
+    if(user){
+      authModal.classList.add('hidden'); hideSplash(); main.classList.remove('hidden');
+      const uref = doc(db,'users',user.uid);
+      const s = await getDoc(uref);
+      if(!s.exists()){
+        const role = (user.email===SUPER_ADMIN_EMAIL)?'superadmin':'member';
+        await setDoc(uref,{ email:user.email, name:user.displayName||user.email.split('@')[0], role, createdAt:serverTimestamp() });
+      }else if(user.email===SUPER_ADMIN_EMAIL && s.data().role!=='superadmin'){
+        await updateDoc(uref,{ role:'superadmin' });
+      }
+      await refreshUI();
+    }else{
+      main.classList.add('hidden'); authModal.classList.remove('hidden'); menu.classList.add('hidden');
+      topName.textContent='Welcome'; topRole.textContent='Sign in to continue'; avatarSmall.innerHTML='<img src="https://i.imgur.com/0bTCl2T.png" alt="avatar">';
+    }
+  }catch(err){ console.error('auth state error',err); hideSplash(); authModal.classList.remove('hidden'); }
+});
+setTimeout(hideSplash, 3000);
+
+/* === UI refresh === */
+async function refreshUI(){
+  const user = auth.currentUser; if(!user) return;
+  const s = await getDoc(doc(db,'users',user.uid)); const data = s.data()||{};
+  topName.textContent = data.name || user.email;
+  topRole.textContent = data.role || 'member';
+  welcomeMsg.textContent = `Welcome, ${data.name||user.email}`;
+  if(user.photoURL) avatarSmall.innerHTML = `<img src="${user.photoURL}" alt="pf">`;
+  else avatarSmall.innerHTML = `<img src="https://i.imgur.com/0bTCl2T.png" alt="pf">`;
+  if((data.role||'')==='superadmin'){ btnAdminPanel.classList.remove('hidden'); }
+  else btnAdminPanel.classList.add('hidden');
+  btnLogout.classList.remove('hidden');
+  startCountdown(FESTIVAL_DATE);
+  await loadEventsFeed();
+  await drawProgress();
+}
+
+/* === Countdown === */
+function startCountdown(target){
+  function tick(){
+    const diff = target - Date.now();
+    if(diff<=0){ countdownEl.textContent='Now'; return; }
+    const d=Math.floor(diff/86400000), h=Math.floor(diff%86400000/3600000), m=Math.floor(diff%3600000/60000);
+    countdownEl.textContent=`${d}d ${h}h ${m}m`;
+  }
+  tick(); setInterval(tick, 60000);
+}
+
+/* === Events (feed + panel) === */
+async function loadEventsFeed(){
+  eventsList.innerHTML='';
+  const snaps = await getDocs(collection(db,'events'));
+  if(snaps.empty){ eventsList.innerHTML='<div class="muted small">No upcoming events</div>'; return; }
+  let soon=null;
+  snaps.forEach(s=>{
+    const e=s.data(); const d=document.createElement('div'); d.className='item';
+    d.innerHTML=`<strong>${e.title||'Event'}</strong><div class="muted small">${e.when||''}</div><div class="muted small">${e.desc||''}</div>`;
+    eventsList.appendChild(d);
+    const t=Date.parse(e.when||''); if(!isNaN(t) && (!soon || t<soon)) soon=t;
+  });
+  if(soon) nextEvent.textContent='Next event: '+new Date(soon).toLocaleString();
+}
+async function loadEventsPanel(){
+  const u=auth.currentUser; if(!u) return;
+  const role = (await getDoc(doc(db,'users',u.uid))).data()?.role || 'member';
+  eventForm.classList.toggle('hidden', !(role==='admin'||role==='superadmin'));
+  eventsPanelList.innerHTML='';
+  const snaps = await getDocs(collection(db,'events'));
+  snaps.forEach(s=>{ const e=s.data(); const div=document.createElement('div'); div.className='item'; div.innerHTML=`<strong>${e.title}</strong><div class="muted small">${e.when}</div><div class="muted small">${e.desc||''}</div>`; eventsPanelList.appendChild(div); });
+}
+btnPostEvent?.addEventListener('click', async ()=>{
+  const title=evTitle.value.trim(), when=evWhen.value, desc=evDesc.value.trim();
+  if(!title || !when) return toast('Title & date required');
+  await addDoc(collection(db,'events'),{ title, when, desc, createdAt:serverTimestamp() });
+  evTitle.value=''; evWhen.value=''; evDesc.value=''; toast('Event posted'); loadEventsPanel(); loadEventsFeed();
+});
+
+/* === Collections === */
+async function loadCollections(){
+  collectionsList.innerHTML='';
+  const snaps=await getDocs(collection(db,'collections'));
+  if(snaps.empty){ collectionsList.innerHTML='<div class="muted small">No records</div>'; return; }
+  snaps.forEach(s=>{ const c=s.data(); const div=document.createElement('div'); div.className='item';
+    div.innerHTML=`<div><strong>${c.name||c.email}</strong><div class="muted small">${c.email||''}</div></div><div class="muted small">${c.paid?'Paid':'Pending'}</div>`;
+    collectionsList.appendChild(div);
+  });
+}
+
+/* === Songs === */
+async function loadSongs(){
+  songsList.innerHTML='';
+  const snaps=await getDocs(collection(db,'songs'));
+  if(snaps.empty){ songsList.innerHTML='<div class="muted small">No songs</div>'; return;}
+  snaps.forEach(s=>{ const x=s.data(); const div=document.createElement('div'); div.className='item';
+    div.innerHTML=`<strong>${x.title||'Song'}</strong><div class="muted small">${x.lang||''}</div>${x.youTube?`<div style="margin-top:6px"><iframe width="100%" height="90" src="${x.youTube}" frameborder="0" allowfullscreen></iframe></div>`:''}`;
+    songsList.appendChild(div);
+  });
+}
+
+/* === Gallery === */
+galleryFile?.addEventListener('change', async (e)=>{
+  const file=e.target.files[0]; if(!file) return;
+  const u=auth.currentUser; if(!u) return toast('Sign in first');
+  const path=`gallery/${u.uid}/${Date.now()}_${file.name}`;
+  try{
+    const r=ref(storage,path); await uploadBytes(r,file); const url=await getDownloadURL(r);
+    await addDoc(collection(db,'gallery'),{ url, uploader:u.email, createdAt:serverTimestamp() });
+    toast('Image uploaded'); loadGallery();
+  }catch(err){ console.error(err); toast('Upload failed'); }
+});
+async function loadGallery(){
+  galleryGrid.innerHTML='';
+  const snaps=await getDocs(collection(db,'gallery'));
+  if(snaps.empty){ galleryGrid.innerHTML='<div class="muted small">No images</div>'; return; }
+  snaps.forEach(s=>{ const d=s.data(); const img=document.createElement('img'); img.src=d.url; galleryGrid.appendChild(img); });
+}
+
+/* === Chat === */
+chatSend.onclick = async ()=>{
+  const txt=chatInput.value.trim(); if(!txt) return;
+  const u=auth.currentUser; if(!u) return toast('Sign in first');
+  await addDoc(collection(db,'chats'),{ text:txt, by:u.email, at:serverTimestamp() });
+  chatInput.value=''; loadChat();
+};
+async function loadChat(){
+  chatWindow.innerHTML='';
+  const snaps=await getDocs(query(collection(db,'chats'), orderBy('at','asc')));
+  snaps.forEach(s=>{ const m=s.data(); const div=document.createElement('div'); div.className='item';
+    div.innerHTML=`<strong>${m.by}</strong><div class="muted small">${m.text}</div>`; chatWindow.appendChild(div);
+  });
+  chatWindow.scrollTop=chatWindow.scrollHeight;
+}
+
+/* === Admin: approve === */
+async function loadPending(){
+  pendingList.innerHTML='';
+  const u=auth.currentUser; if(!u) return;
+  const role=(await getDoc(doc(db,'users',u.uid))).data()?.role||'member';
+  if(role!=='superadmin'){ pendingList.innerHTML='<div class="muted small">Only super admin can view.</div>'; return; }
+  const snaps=await getDocs(collection(db,'pending'));
+  if(snaps.empty){ pendingList.innerHTML='<div class="muted small">No pending requests</div>'; return; }
+  snaps.forEach(s=>{
+    const d=s.data(); const row=document.createElement('div'); row.className='item';
+    const btn=document.createElement('button'); btn.className='btn small'; btn.textContent='Approve admin';
+    btn.onclick=async ()=>{
+      // find user doc by email
+      const us=await getDocs(collection(db,'users')); let found=null;
+      us.forEach(u=>{ if(u.data().email===d.email) found=u; });
+      if(found){ await updateDoc(doc(db,'users',found.id),{ role:'admin' }); toast('Promoted'); }
+      else toast('User not found yet (needs signup)');
+    };
+    row.innerHTML=`<div><strong>${d.email}</strong><div class="muted small">Requested</div></div>`;
+    row.appendChild(btn); pendingList.appendChild(row);
+  });
+}
+btnPromote?.addEventListener('click', async ()=>{
+  const email=promoteEmail.value.trim(); if(!email) return toast('Email required');
+  const cur=auth.currentUser; if(!cur) return; const role=(await getDoc(doc(db,'users',cur.uid))).data()?.role||'member';
+  if(role!=='superadmin') return toast('Super admin only');
+  // Promote directly if user exists
+  const us=await getDocs(collection(db,'users')); let found=null;
+  us.forEach(u=>{ if(u.data().email===email) found=u; });
+  if(found){ await updateDoc(doc(db,'users',found.id),{ role:'admin' }); await addDoc(collection(db,'admins'),{ email, by:cur.email, at:serverTimestamp() }); toast('Promoted'); }
+  else { await addDoc(collection(db,'pending'),{ email, requestedAt:serverTimestamp() }); toast('Added to pending'); }
+});
+
+/* === Progress ring === */
+async function drawProgress(){
+  const c=progressCanvas, ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+  const snaps=await getDocs(collection(db,'collections'));
+  const total=snaps.size||0, paid=snaps.docs.filter(d=>d.data().paid).length;
+  const pct=total?Math.round(paid/total*100):0; progressPct.textContent=pct+'%';
+  const cx=c.width/2, cy=c.height/2, r=Math.min(cx,cy)-8;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle='#ffe7cc'; ctx.lineWidth=12; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*(pct/100)); ctx.strokeStyle='#ff9a3b'; ctx.lineWidth=12; ctx.stroke();
+  ctx.fillStyle='#6b3a00'; ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(pct+'%', cx, cy);
+}
+
+/* === Quick connectivity test (call from console if needed) === */
+window.testWriteRead = async ()=>{
+  try{
+    const r=await addDoc(collection(db,'testConnection'),{ at:serverTimestamp(), by:auth.currentUser?.email||null });
+    console.log('Test doc added id:', r.id); toast('Test write OK');
+  }catch(err){ console.error('testWriteRead error',err); alert('Test failed: '+err.message); }
+};
+</script>
 </body>
 </html>
